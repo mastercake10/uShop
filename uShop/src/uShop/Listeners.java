@@ -46,6 +46,12 @@ public class Listeners implements Listener {
 								Main.economy.depositPlayer(p, total);
 								p.sendMessage(Main.cfg.getString("message-sold").replace('&', '§').replace("%total%", Main.economy.format(total)));
 								
+								for(ItemStack is : e.getInventory().getContents()){
+									if(is != null && Main.getPrice(is) == 0d){
+										p.getInventory().addItem(is);
+									}
+								}
+								
 								cooldowns.put(p.getName(), System.currentTimeMillis());
 								e.getInventory().clear();
 								//Run later because the inventory bugs if closed immediately.

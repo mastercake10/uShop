@@ -49,41 +49,40 @@ public class Main extends JavaPlugin{
 		final String itemEnumFormat = Main.cfg.getString("gui-item-enumeration-format").replace("&", "§");
 		
 		
-		this.getServer().getScheduler().scheduleAsyncRepeatingTask(this, new Runnable(){
-			public void run(){
-				Iterator<Player> it = openShops.keySet().iterator();
-				while(it.hasNext()){
-					Player p = it.next();
-					if(p.getOpenInventory().getTopInventory() != null){
-						if(p.getOpenInventory().getTopInventory().getTitle() != null){
-							if(p.getOpenInventory().getTopInventory().getTitle().equals(Main.cfg.getString("gui-name").replace("&", "§"))){
-								//Aktuallisieren
-								ItemStack[] is = p.getOpenInventory().getTopInventory().getContents();
-								is[p.getOpenInventory().getTopInventory().getSize() - 5] = null;
-								List<String> lore = new ArrayList<String>();
-								for(Material mat : Main.getMaterials(is)){
-									int amount = Main.getTotalAmountOfMaterial(is, mat);
-									double price = Main.getPrice(mat) * amount;
-									String s = itemEnumFormat.replace("%amount%", amount + "").replace("%material%", mat.name()).replace("%price%", Main.economy.format(price));
-									lore.add(s);
-								}
-								
-								ItemStack sell = p.getOpenInventory().getTopInventory().getItem(p.getOpenInventory().getTopInventory().getSize() - 5);
-								if(sell == null) continue;
-								if(sell.getItemMeta() == null) continue;
-								ItemMeta im  = sell.getItemMeta();
-								im.setDisplayName(Main.cfg.getString("gui-sellitem.displayname").replace('&', '§').replace("%total%", Main.economy.format(Main.calcPrices(is))));
-								im.setLore(lore);
-								sell.setItemMeta(im);
-								
-								p.getOpenInventory().getTopInventory().setItem(p.getOpenInventory().getTopInventory().getSize() - 5, sell);
-							}else{
-								ItemStack[] stacks = openShops.get(p).getContents();
-								stacks[openShops.get(p).getSize() - 5] = null;
-								addToInv(p.getInventory(), stacks);
-								openShops.remove(p);
+		this.getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
+			Iterator<Player> it = openShops.keySet().iterator();
+			while(it.hasNext()){
+				Player p = it.next();
+				if(p.getOpenInventory().getTopInventory() != null){
+					if(p.getOpenInventory().getTopInventory().getTitle() != null){
+						if(p.getOpenInventory().getTopInventory().getTitle().equals(Main.cfg.getString("gui-name").replace("&", "§"))){
+							//Aktuallisieren
+							ItemStack[] is = p.getOpenInventory().getTopInventory().getContents();
+							is[p.getOpenInventory().getTopInventory().getSize() - 5] = null;
+							List<String> lore = new ArrayList<String>();
+							for(Material mat : Main.getMaterials(is)){
+								int amount = Main.getTotalAmountOfMaterial(is, mat);
+								double price = Main.getPrice(mat) * amount;
+								String s = itemEnumFormat.replace("%amount%", amount + "").replace("%material%", mat.name().toLowerCase().replace("_", " ")).replace("%price%", Main.economy.format(price));
+								lore.add(s);
 							}
+							
+							ItemStack sell = p.getOpenInventory().getTopInventory().getItem(p.getOpenInventory().getTopInventory().getSize() - 5);
+							if(sell == null) continue;
+							if(sell.getItemMeta() == null) continue;
+							ItemMeta im  = sell.getItemMeta();
+							im.setDisplayName(Main.cfg.getString("gui-sellitem.displayname").replace('&', '§').replace("%total%", Main.economy.format(Main.calcPrices(is))));
+							im.setLore(lore);
+							sell.setItemMeta(im);
+							
+							p.getOpenInventory().getTopInventory().setItem(p.getOpenInventory().getTopInventory().getSize() - 5, sell);
+						}else{
+							ItemStack[] stacks = openShops.get(p).getContents();
+							stacks[openShops.get(p).getSize() - 5] = null;
+							addToInv(p.getInventory(), stacks);
+							openShops.remove(p);
 						}
+						
 					}
 				}
 			}
@@ -143,20 +142,25 @@ public class Main extends JavaPlugin{
 	public static double calcPrices(ItemStack[] is){
 		double price = 0;
 		for(ItemStack stack : is){
-			if(stack != null){
-				if(cfg.getBoolean("use-essentials-worth-list")){
-					com.earth2me.essentials.Essentials plugin = (com.earth2me.essentials.Essentials) Bukkit.getPluginManager().getPlugin("Essentials");
-					try{
-						price += plugin.getWorth().getPrice(stack).doubleValue() * stack.getAmount();	
-					}catch(NullPointerException e){
-						
-					}
-				}else{
-					price += getPrice(stack.getType()) * stack.getAmount();
-				}
-			}
+			price += getPrice(stack);
 		}
 		return price;
+	}
+	
+	public static double getPrice(ItemStack stack){
+		if(stack != null){
+			if(cfg.getBoolean("use-essentials-worth-list")){
+				com.earth2me.essentials.Essentials plugin = (com.earth2me.essentials.Essentials) Bukkit.getPluginManager().getPlugin("Essentials");
+				try{
+					return plugin.getWorth().getPrice(stack).doubleValue() * stack.getAmount();	
+				}catch(NullPointerException e){
+					
+				}
+			}else{
+				return getPrice(stack.getType()) * stack.getAmount();
+			}
+		}
+		return 0d;
 	}
 	
 	public void registerCommand(String cmdLabel){
