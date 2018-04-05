@@ -3,7 +3,7 @@ depends: [Vault]
 soft-depends: [Essentials]
 author: Linus122
 main: uShop.Main
-version: 1.7.5
+version: 1.7.6
 description: easy sell your stuff
 commands:
    ushop:

@@ -8,3 +8,4 @@ message-sold: "&aSold all items for &c%total%&a!"
 # would use essentials worth list. Only activate it if you have essentials installed
 use-essentials-worth-list: false
 command: "sell"
+# sell prices. Format: MATERIAL!DATA: PRICE

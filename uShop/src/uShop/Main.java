@@ -60,10 +60,10 @@ public class Main extends JavaPlugin{
 							ItemStack[] is = p.getOpenInventory().getTopInventory().getContents();
 							is[p.getOpenInventory().getTopInventory().getSize() - 5] = null;
 							List<String> lore = new ArrayList<String>();
-							for(Material mat : Main.getMaterials(is)){
-								int amount = Main.getTotalAmountOfMaterial(is, mat);
-								double price = Main.getPrice(mat) * amount;
-								String s = itemEnumFormat.replace("%amount%", amount + "").replace("%material%", mat.name().toLowerCase().replace("_", " ")).replace("%price%", Main.economy.format(price));
+							for(SimpleItem si : Main.getMaterialsWithData(is)){
+								int amount = Main.getTotalAmountOfMaterialAndData(is, si);
+								double price = Main.getPrice(si) * amount;
+								String s = itemEnumFormat.replace("%amount%", amount + "").replace("%material%", si.material.name().toLowerCase().replace("_", " ")).replace("%price%", Main.economy.format(price));
 								lore.add(s);
 							}
 							
@@ -105,35 +105,41 @@ public class Main extends JavaPlugin{
 			}
 		}
 	}
-	public static double getPrice(Material mat){
+	public static double getPrice(SimpleItem si){
 		if(cfg.getBoolean("use-essentials-worth-list")){
 			com.earth2me.essentials.Essentials plugin = (com.earth2me.essentials.Essentials) Bukkit.getPluginManager().getPlugin("Essentials");
 			try{
-				return plugin.getWorth().getPrice(new ItemStack(mat, 1)).doubleValue();
+				return plugin.getWorth().getPrice(new ItemStack(si.material, 1, si.data)).doubleValue();
 			}catch(NullPointerException e){
 				return 0.0;
 			}
 		}else{
-			return cfg.getDouble("sell-prices." + mat.name());
+			if(si.data == (byte) 0){
+				return cfg.getDouble("sell-prices." + si.material.name());	
+			}else{
+				System.out.println(si.data);
+				return cfg.getDouble("sell-prices." + si.material.name() + "!" + si.data);
+			}
 		}
 	}
-	public static int getTotalAmountOfMaterial(ItemStack[] is, Material mat){
+	public static int getTotalAmountOfMaterialAndData(ItemStack[] is, SimpleItem si){
 		int amount = 0;
 		for(ItemStack stack : is){
 			if(stack != null){
-				if(stack.getType() == mat){
+				if(stack.getType() == si.material && stack.getData().getData() == si.data){
 					amount += stack.getAmount();
 				}
 			}
 		}
 		return amount;
 	}
-	public static List<Material> getMaterials(ItemStack[] is){
-		List<Material> mats = new ArrayList<Material>();
+	public static List<SimpleItem> getMaterialsWithData(ItemStack[] is){
+		List<SimpleItem> mats = new ArrayList<SimpleItem>();
 		for(ItemStack stack : is){
 			if(stack != null){
-				if(!mats.contains(stack.getType())){
-					mats.add(stack.getType());
+				SimpleItem si = new SimpleItem(stack);
+				if(!mats.contains(si)){
+					mats.add(si);
 				}	
 			}
 		}
@@ -157,7 +163,7 @@ public class Main extends JavaPlugin{
 					
 				}
 			}else{
-				return getPrice(stack.getType()) * stack.getAmount();
+				return getPrice(new SimpleItem(stack)) * stack.getAmount();
 			}
 		}
 		return 0d;
