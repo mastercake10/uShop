@@ -2,8 +2,8 @@ name: uShop
 depends: [Vault]
 soft-depends: [Essentials]
 author: Linus122
-main: uShop.Main
-version: 1.7.6
+main: xyz.spaceio.ushop.Main
+version: ${project.version}
 description: easy sell your stuff
 commands:
    ushop:

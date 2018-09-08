@@ -53,7 +53,7 @@ public class Listeners implements Listener {
 								
 								// put unsalable items back to player's inventory
 								for(ItemStack is : e.getInventory().getContents()){
-									if(!plugin.isSalable(is)){
+									if(is != null && is.getType() != Material.AIR && !plugin.isSalable(is)){
 										p.getInventory().addItem(is);
 									}
 								}

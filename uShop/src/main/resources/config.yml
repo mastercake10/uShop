@@ -1,7 +1,7 @@
 gui-name: "&cShop"
 gui-rows: 5
 gui-sellitem:
-  material: "GOLD_NUGGET"
+  material: "EMERALD"
   displayname: "&cClick to Sell (&a%total%&c)"
 gui-item-enumeration-format: "%amount%x &c%material%&r = &a %price%"
 message-sold: "&aSold all items for &c%total%&a!" 

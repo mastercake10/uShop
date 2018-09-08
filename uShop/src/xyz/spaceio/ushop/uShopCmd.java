@@ -1,10 +1,13 @@
 package xyz.spaceio.ushop;
 
+import java.util.Optional;
+
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public class uShopCmd implements CommandExecutor {
 
@@ -36,11 +39,21 @@ public class uShopCmd implements CommandExecutor {
 						if (p.getInventory().getItemInMainHand().getType() != null) {
 							if (p.getInventory().getItemInMainHand().getType() != Material.AIR) {
 								// item holding
+								ItemStack inHand = p.getInventory().getItemInMainHand();
 								double price = Double.parseDouble(args[1]);
+								
+								Optional<CustomItem> result = plugin.findCustomItem(inHand);
+								if(result.isPresent()) {
+									plugin.getCustomItems().remove(result.get());
+									p.sendMessage("§aSuccessfully updated item:");
+								}else {
+									p.sendMessage("§aSuccessfully added item:");
+								}
 								CustomItem i = new CustomItem(p.getInventory().getItemInMainHand(), price);
 								plugin.addCustomItem(i);
-								cs.sendMessage("§aPrice set to §c" + price);
 								plugin.saveMainConfig();
+								
+								p.sendMessage(plugin.getCustomItemDescription(i, 1).stream().toArray(String[]::new));
 								return true;
 							}
 						}

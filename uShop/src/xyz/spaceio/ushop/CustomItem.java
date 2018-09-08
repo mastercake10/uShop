@@ -4,6 +4,8 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -14,7 +16,7 @@ public class CustomItem implements ConfigurationSerializable {
 
 	private String material;
 
-	private Map<Enchantment, Integer> enchantements;
+	private Map<String, Integer> enchantements;
 	private String displayname;
 
 	private boolean hasMeta = false;
@@ -38,7 +40,8 @@ public class CustomItem implements ConfigurationSerializable {
 			}
 		}
 		if (is.getEnchantments() != null) {
-			this.enchantements = is.getEnchantments();
+			// transforming enchantments to the name space of the corresponding enchantment
+			this.enchantements = is.getEnchantments().entrySet().stream().collect(Collectors.toMap(x -> x.getKey().getKey().getKey(), x -> x.getValue()));
 		}
 	}
 
@@ -48,51 +51,62 @@ public class CustomItem implements ConfigurationSerializable {
 	 * @return
 	 */
 	public boolean matches(ItemStack is) {
-		System.out.println("ci: " + is.getType().name());
-		System.out.println("is: " + material);
-		if (!is.getType().name().equals(material)) return false;
-		
-		if (is.hasItemMeta() != hasMeta) return false;
-		
-		if(is.getDurability() != durability) return false;
-		
-		if (!hasMeta) return true;
-		
-		if (hasMeta) {
-			System.out.println("ci: " + displayname);
-			System.out.println("is: " + is.getItemMeta().getDisplayName());
-			
-			if ((displayname == null && is.getItemMeta().getDisplayName() == null) || (displayname != null && is.getItemMeta().getDisplayName() != null && displayname.equals(is.getItemMeta().getDisplayName()))) {
-			
-				if(enchantements != null && is.getEnchantments().size() != 0) {
-					int[] matches = {0};
-					enchantements.forEach((enchantement, level) -> {
-						if(is.getEnchantments().containsKey(enchantement)) {
-							if(is.getEnchantments().get(enchantement) == level) {
-								matches[0]++;		
-							}
-						}
-					});
-					if(matches[0] != is.getEnchantments().size()) {
-						return false;
-					}
-				}
-				if(lore != null && is.getItemMeta().getLore().size() != 0) {
-					int[] matches = {0};
-					lore.forEach((line) -> {
-						if(is.getItemMeta().getLore().contains(line)) {
-							matches[0]++;		
-						}
-					});
-					if(matches[0] != is.getItemMeta().getLore().size()) {
-						return false;
-					}
-				}
-				return true;
-				
-			}
+		if (!is.getType().name().equals(material)) {
+			return false;
 		}
-		return false;
+		
+		if (is.hasItemMeta() != hasMeta) {
+			return false;
+		}
+		
+		if(is.getDurability() != durability) {
+			return false;
+		}
+	
+		if (hasMeta) {
+			
+			if(displayname == null && is.getItemMeta().hasDisplayName() || displayname != null && !is.getItemMeta().hasDisplayName()) {
+				return false;
+			}
+			
+			if(displayname != null && is.getItemMeta().hasDisplayName() && !displayname.equals(is.getItemMeta().getDisplayName())) {
+				return false;
+			}
+			
+			if(enchantements != null && is.getEnchantments().size() != 0) {
+				boolean matchesEnchantments = is.getEnchantments().entrySet().stream().allMatch(entry -> {
+					if(enchantements.containsKey(entry.getKey().getKey().getKey())) {
+						if(entry.getValue() == enchantements.get(entry.getKey().getKey().getKey())){
+							return true;
+						}
+					}
+					return false;
+				});
+				
+				if(!matchesEnchantments) {
+					return false;
+				}
+				
+			}else if(!(enchantements.size() == 0 && is.getEnchantments().size() == 0)){
+				return false;
+			}
+			
+			if(lore != null && is.getItemMeta().getLore().size() != 0) {
+				int[] matches = {0};
+				lore.forEach((line) -> {
+					if(is.getItemMeta().getLore().contains(line)) {
+						matches[0]++;		
+					}
+				});
+				if(matches[0] != is.getItemMeta().getLore().size()) {
+					return false;
+				}
+			}
+			return true;
+				
+		}else {
+			return true;
+		}
 		
 	}
 	
@@ -121,11 +135,11 @@ public class CustomItem implements ConfigurationSerializable {
 		this.material = material.name();
 	}
 
-	public Map<Enchantment, Integer> getEnchantements() {
+	public Map<String, Integer> getEnchantements() {
 		return enchantements;
 	}
 
-	public void setEnchantements(Map<Enchantment, Integer> enchantements) {
+	public void setEnchantements(Map<String, Integer> enchantements) {
 		this.enchantements = enchantements;
 	}
 

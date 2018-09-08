@@ -7,7 +7,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.SimpleCommandMap;
@@ -71,8 +74,6 @@ public class Main extends JavaPlugin {
 
 		this.getServer().getPluginManager().registerEvents(new Listeners(this), this);
 
-		final String itemEnumFormat = cfg.getString("gui-item-enumeration-format").replace("&", "§");
-
 		this.getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
 			Iterator<Player> it = openShops.keySet().iterator();
 			while (it.hasNext()) {
@@ -92,10 +93,7 @@ public class Main extends JavaPlugin {
 							getSalableItems(invContent).forEach((item, amount) -> {
 								double totalStackPrice = item.getPrice() * amount;
 								totalPrice[0] += totalStackPrice;
-								String s = itemEnumFormat.replace("%amount%", amount + "")
-										.replace("%material%", item.getMaterial().toLowerCase().replace("_", " "))
-										.replace("%price%", economy.format(item.getPrice()));
-								lore.add(s);
+								lore.addAll(getCustomItemDescription(item, amount));
 							});
 
 							ItemStack sell = p.getOpenInventory().getTopInventory()
@@ -124,6 +122,24 @@ public class Main extends JavaPlugin {
 			}
 		}, 20L, 20L);
 	}
+	
+	public List<String> getCustomItemDescription(CustomItem item, int amount){
+		List<String> list = new ArrayList<String>();
+		
+		final String itemEnumFormat = cfg.getString("gui-item-enumeration-format").replace("&", "§");
+	
+		String s = itemEnumFormat.replace("%amount%", amount + "")
+				.replace("%material%", item.getDisplayname() == null ? WordUtils.capitalize(item.getMaterial().toLowerCase().replace("_", " ")) : item.getDisplayname())
+				.replace("%price%", economy.format(item.getPrice() * amount));
+		list.add(s);
+		
+		// adding enchantements
+		item.getEnchantements().forEach((enchantement, level) -> {
+			list.add(String.format("§7%s %s", WordUtils.capitalize(enchantement), Utils.toRoman(level)));
+		});
+		
+		return list;
+	}
 
 	public void saveMainConfig() {
 		cfg.set("sell-prices", gson.toJson(customItems));
@@ -143,7 +159,7 @@ public class Main extends JavaPlugin {
 		for (ItemStack stack : is) {
 			if (stack != null) {
 				// check if item is in the custom item list
-				Optional<CustomItem> opt = customItems.stream().findFirst().filter((item) -> item.matches(stack));
+				Optional<CustomItem> opt = findCustomItem(stack);
 				if(opt.isPresent()) {
 					// add item to map
 					customItemsMap.compute(opt.get(), (k, v) -> v == null ? stack.getAmount() : v + stack.getAmount());
@@ -154,12 +170,23 @@ public class Main extends JavaPlugin {
 		return customItemsMap;
 	}
 	
+	/**
+	 * Finds the representing Custom Item for a certain Item Stack
+	 * @param stack
+	 * @return
+	 */
+	public Optional<CustomItem> findCustomItem(ItemStack stack) {
+		return customItems.stream().filter((item) -> item.matches(stack)).findFirst();
+	}
+
 	public double calcWorthOfContent(ItemStack[] content) {
 		HashMap<CustomItem, Integer> salable = getSalableItems(content);
 		return salable.keySet().stream().mapToDouble(v -> v.getPrice() * salable.get(v)).sum();
 	}
 	
 	public boolean isSalable(ItemStack is) {
+		if(is == null || is.getType() == null || is.getType() == Material.AIR) return false;
+		
 		return customItems.stream().anyMatch(v -> v.matches(is));
 	}
 
