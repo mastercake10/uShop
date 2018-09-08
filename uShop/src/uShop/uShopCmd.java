@@ -5,42 +5,43 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 
 public class uShopCmd implements CommandExecutor {
 
-	Plugin main;
-	
-	public uShopCmd(Main main) {
-		this.main = main;
+	Main plugin;
+
+	public uShopCmd(Main plugin) {
+		this.plugin = plugin;
 	}
 
 	@Override
 	public boolean onCommand(CommandSender cs, Command arg1, String arg2, String[] args) {
-		if(!cs.hasPermission("ushop.admin")){
+		if (!cs.hasPermission("ushop.admin")) {
 			cs.sendMessage("§cYou dont have permissions to use this command!");
 			return true;
 		}
-		if(args.length > 0){
-			if(args[0].equalsIgnoreCase("reload")){
+		if (args.length > 0) {
+			if (args[0].equalsIgnoreCase("reload")) {
 				cs.sendMessage("§aConfig.yml reloaded!");
-				((Main) main).reloadConfig2();
+				plugin.reloadConfig();
 				return true;
-			}else if(args[0].equalsIgnoreCase("setprice")){
-				if(args.length > 1){
-					if(!(cs instanceof Player)){
+			} else if (args[0].equalsIgnoreCase("setprice")) {
+				if (args.length > 1) {
+					if (!(cs instanceof Player)) {
 						cs.sendMessage("You have to be a player!");
 						return true;
 					}
 					Player p = (Player) cs;
-					if(p.getItemInHand() != null){
-						if(p.getItemInHand().getType() != null){
-							if(p.getItemInHand().getType() != Material.AIR){
+					if (p.getInventory().getItemInMainHand() != null) {
+						if (p.getInventory().getItemInMainHand().getType() != null) {
+							if (p.getInventory().getItemInMainHand().getType() != Material.AIR) {
 								// item holding
 								double price = Double.parseDouble(args[1]);
-								CustomItem i = new CustomItem(p.getItemInHand(), price);
-								Main.addCustomItem(i);
-								cs.sendMessage("§aPrice set to " + price);
+								CustomItem i = new CustomItem(p.getInventory().getItemInMainHand(), price);
+								plugin.addCustomItem(i);
+								cs.sendMessage("§aPrice set to §c" + price);
+								plugin.saveMainConfig();
+								return true;
 							}
 						}
 					}
@@ -49,16 +50,17 @@ public class uShopCmd implements CommandExecutor {
 				}
 			}
 		}
-		
+
 		showHelp(cs);
-		
+
 		return true;
 	}
 
 	private void showHelp(CommandSender cs) {
 		cs.sendMessage("§uShop help:");
 		cs.sendMessage("/ushop §creload §r- reloads the config");
-		//cs.sendMessage("/ushop §csetprice <price> §r- sets a custom price for an item with custom lore, displayname, durability and enchants");
+		cs.sendMessage(
+				"/ushop §csetprice <price> §r- sets a custom price for an item with custom lore, displayname, durability and enchants");
 	}
 
 }

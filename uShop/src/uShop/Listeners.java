@@ -16,11 +16,16 @@ import org.bukkit.inventory.ItemStack;
 public class Listeners implements Listener {
 	HashMap<String, Long> cooldowns = new HashMap<String, Long>();
 	
+	Main plugin;
+	public Listeners(Main main) {
+		this.plugin = main;
+	}
+
 	@EventHandler
 	public void onClick(final InventoryClickEvent e){
 		if(e.getInventory() != null){
 			if(e.getInventory().getTitle() != null){
-				if(e.getInventory().getTitle().equals(Main.cfg.getString("gui-name").replace("&", "§"))){
+				if(e.getInventory().getTitle().equals(plugin.getConfig().getString("gui-name").replace("&", "§"))){
 					if(e.getCurrentItem() != null){
 						
 						if(e.getSlot() == e.getInventory().getSize() - 5){
@@ -42,12 +47,13 @@ public class Listeners implements Listener {
 									e.setCursor(null);
 								}
 								//SELL
-								double total = Main.calcPrices(e.getInventory().getContents());
-								Main.economy.depositPlayer(p, total);
-								p.sendMessage(Main.cfg.getString("message-sold").replace('&', '§').replace("%total%", Main.economy.format(total)));
+								double total = plugin.calcWorthOfContent(e.getInventory().getContents());
+								plugin.getEconomy().depositPlayer(p, total);
+								p.sendMessage(plugin.getConfig().getString("message-sold").replace('&', '§').replace("%total%", plugin.getEconomy().format(total)));
 								
+								// put unsalable items back to player's inventory
 								for(ItemStack is : e.getInventory().getContents()){
-									if(is != null && Main.getPrice(is) == 0d){
+									if(!plugin.isSalable(is)){
 										p.getInventory().addItem(is);
 									}
 								}
@@ -55,7 +61,7 @@ public class Listeners implements Listener {
 								cooldowns.put(p.getName(), System.currentTimeMillis());
 								e.getInventory().clear();
 								//Run later because the inventory bugs if closed immediately.
-								Bukkit.getScheduler().runTaskLaterAsynchronously(Main.pl, new Runnable(){
+								Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, new Runnable(){
 									public void run(){
 										p.closeInventory();
 										p.updateInventory();

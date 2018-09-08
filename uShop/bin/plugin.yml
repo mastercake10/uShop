@@ -1,0 +1,12 @@
+name: uShop
+depends: [Vault]
+soft-depends: [Essentials]
+author: Linus122
+main: uShop.Main
+version: 1.7.6
+description: easy sell your stuff
+commands:
+   ushop:
+      description: main command of ushop
+      usage: /<command>
+      permission: ushop.admin
