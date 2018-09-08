@@ -1,4 +1,4 @@
-package uShop;
+package xyz.spaceio.ushop;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -9,8 +9,6 @@ import org.bukkit.Material;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
-
-import net.minecraft.server.v1_13_R1.WorldGenWoodlandMansionPieces.i;
 
 public class CustomItem implements ConfigurationSerializable {
 

@@ -1,4 +1,4 @@
-package uShop;
+package xyz.spaceio.ushop;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
