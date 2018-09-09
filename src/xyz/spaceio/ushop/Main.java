@@ -122,6 +122,7 @@ public class Main extends JavaPlugin {
 			}
 		}, 20L, 20L);
 		
+		// init spaceio metrics
 		new Metrics(this);
 	}
 	
