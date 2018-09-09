@@ -87,10 +87,11 @@ public class uShopCmd implements CommandExecutor {
 	}
 
 	private void showHelp(CommandSender cs) {
-		cs.sendMessage("§c -- uShop help: --");
+		cs.sendMessage("§c -- uShop v" + plugin.getDescription().getVersion() + " help: --");
 		cs.sendMessage("§e/ushop §creload §r- reloads the config");
 		cs.sendMessage("§e/ushop §csetprice <price> §r- sets a custom price for an item with custom lore, displayname, durability and enchants");
 		cs.sendMessage("§e/ushop §copen <player> §r- opens the shop for other players");
+		cs.sendMessage("§cCurrentely configured items: §a" + plugin.getCustomItems().size());
 	}
 
 }
