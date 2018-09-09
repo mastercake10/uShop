@@ -2,6 +2,7 @@ package xyz.spaceio.ushop;
 
 import java.util.Optional;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -61,6 +62,22 @@ public class uShopCmd implements CommandExecutor {
 					cs.sendMessage("§cYou need to hold an item in your hand!");
 					return true;
 				}
+			} else if (args[0].equalsIgnoreCase("open")) {
+				if (args.length > 1) {
+					String playername = args[1];
+					Player p = Bukkit.getPlayer(playername);
+					if(p != null) {
+						plugin.openShop(p);
+						cs.sendMessage("§cShop opened.");
+						return true;
+					}else {
+						cs.sendMessage("§cPlayer is not online.");
+						return true;
+					}
+				}else {
+					cs.sendMessage("§cYou need to specify a playername in the command!");
+					return true;
+				}
 			}
 		}
 
@@ -70,10 +87,10 @@ public class uShopCmd implements CommandExecutor {
 	}
 
 	private void showHelp(CommandSender cs) {
-		cs.sendMessage("§uShop help:");
-		cs.sendMessage("/ushop §creload §r- reloads the config");
-		cs.sendMessage(
-				"/ushop §csetprice <price> §r- sets a custom price for an item with custom lore, displayname, durability and enchants");
+		cs.sendMessage("§c -- uShop help: --");
+		cs.sendMessage("§e/ushop §creload §r- reloads the config");
+		cs.sendMessage("§e/ushop §csetprice <price> §r- sets a custom price for an item with custom lore, displayname, durability and enchants");
+		cs.sendMessage("§e/ushop §copen <player> §r- opens the shop for other players");
 	}
 
 }
