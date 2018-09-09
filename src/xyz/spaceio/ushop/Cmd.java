@@ -30,20 +30,8 @@ public class Cmd extends BukkitCommand {
 			cs.sendMessage("You dont have permission!");
 			return true;
 		}
-		Inventory inv = Bukkit.createInventory(null, 9 * plugin.getConfig().getInt("gui-rows"),
-				plugin.getConfig().getString("gui-name").replace("&", "§"));
-		ItemStack is = new ItemStack(Material.getMaterial(plugin.getConfig().getString("gui-sellitem.material")));
-		ItemMeta im = is.getItemMeta();
-		im.setDisplayName(plugin.getConfig().getString("gui-sellitem.displayname").replace('&', '§').replace("%total%",
-				plugin.getEconomy().format(0)));
-		is.setItemMeta(im);
-		inv.setItem(inv.getSize() - 5, is);
-
-		p.openInventory(inv);
-		if (plugin.getOpenShops().containsKey(p)) {
-			return true;
-		}
-		plugin.getOpenShops().put(p, inv);
+		
+		plugin.openShop(p);
 		
 		return true;
 	}
