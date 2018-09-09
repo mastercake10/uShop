@@ -121,6 +121,8 @@ public class Main extends JavaPlugin {
 				}
 			}
 		}, 20L, 20L);
+		
+		new Metrics(this);
 	}
 	
 	public List<String> getCustomItemDescription(CustomItem item, int amount){
@@ -240,5 +242,20 @@ public class Main extends JavaPlugin {
 
 	public void addCustomItem(CustomItem i) {
 		customItems.add(i);
+	}
+
+	public void openShop(Player p) {
+		Inventory inv = Bukkit.createInventory(null, 9 * this.getConfig().getInt("gui-rows"),
+				this.getConfig().getString("gui-name").replace("&", "§"));
+		ItemStack is = new ItemStack(Material.getMaterial(this.getConfig().getString("gui-sellitem.material")));
+		ItemMeta im = is.getItemMeta();
+		im.setDisplayName(this.getConfig().getString("gui-sellitem.displayname").replace('&', '§').replace("%total%",
+				this.getEconomy().format(0)));
+		is.setItemMeta(im);
+		inv.setItem(inv.getSize() - 5, is);
+
+		p.openInventory(inv);
+		this.getOpenShops().put(p, inv);
+		
 	}
 }
