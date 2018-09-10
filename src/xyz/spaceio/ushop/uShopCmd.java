@@ -27,7 +27,7 @@ public class uShopCmd implements CommandExecutor {
 		if (args.length > 0) {
 			if (args[0].equalsIgnoreCase("reload")) {
 				cs.sendMessage("§aConfig.yml reloaded!");
-				plugin.reloadConfig();
+				plugin.reloadItems();
 				return true;
 			} else if (args[0].equalsIgnoreCase("setprice")) {
 				if (args.length > 1) {
@@ -91,7 +91,7 @@ public class uShopCmd implements CommandExecutor {
 		cs.sendMessage("§e/ushop §creload §r- reloads the config");
 		cs.sendMessage("§e/ushop §csetprice <price> §r- sets a custom price for an item with custom lore, displayname, durability and enchants");
 		cs.sendMessage("§e/ushop §copen <player> §r- opens the shop for other players");
-		cs.sendMessage("§cCurrentely configured items: §a" + plugin.getCustomItems().size());
+		cs.sendMessage("§cCurrently configured custom items (with NBT Data): §a" + plugin.getCustomItemCount());
 	}
 
 }

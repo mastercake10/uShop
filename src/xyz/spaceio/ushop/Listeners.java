@@ -2,16 +2,17 @@ package xyz.spaceio.ushop;
 
 import java.util.HashMap;
 
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.Event.Result;
 import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
+
 
 public class Listeners implements Listener {
 	HashMap<String, Long> cooldowns = new HashMap<String, Long>();

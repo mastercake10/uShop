@@ -44,6 +44,23 @@ public class CustomItem implements ConfigurationSerializable {
 			this.enchantements = is.getEnchantments().entrySet().stream().collect(Collectors.toMap(x -> x.getKey().getKey().getKey(), x -> x.getValue()));
 		}
 	}
+	
+	/**
+	 * Returns if this custom item has an item meta and enchantment on it
+	 * @return
+	 */
+	public boolean isSimpleItem() {
+		if(hasMeta) {
+			return false;
+		}
+		if(this.enchantements == null) {
+			return true;
+		}
+		if(this.enchantements.size() == 0) {
+			return true;
+		}
+		return false;
+	}
 
 	/**
 	 * Checks whether or not a real item stack equals to this custom item setup

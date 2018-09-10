@@ -2,10 +2,12 @@ package xyz.spaceio.ushop;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
@@ -62,11 +64,7 @@ public class Main extends JavaPlugin {
 		setupEconomy();
 		
 		this.saveDefaultConfig();
-		this.cfg = this.getConfig();
-		
-		if(this.cfg.getString("sell-prices") != null) {
-			customItems = gson.fromJson(cfg.getString("sell-prices"), new TypeToken<List<CustomItem>>(){}.getType());
-		}
+		this.loadItems();
 
 		// registering command
 		registerCommand(this.cfg.getString("command"));
@@ -126,7 +124,7 @@ public class Main extends JavaPlugin {
 		// init spaceio metrics
 		new Metrics(this);
 	}
-	
+
 	public List<String> getCustomItemDescription(CustomItem item, int amount){
 		List<String> list = new ArrayList<String>();
 		
@@ -146,7 +144,18 @@ public class Main extends JavaPlugin {
 	}
 
 	public void saveMainConfig() {
-		cfg.set("sell-prices", gson.toJson(customItems));
+		List<CustomItem> advancedItems = new ArrayList<CustomItem>();
+		List<String> simpleItems = new ArrayList<String>();
+		
+		for(CustomItem customItem : customItems) {
+			if(customItem.isSimpleItem()) {
+				simpleItems.add(customItem.getMaterial() + ":" + customItem.getPrice());
+			}else {
+				advancedItems.add(customItem);
+			}
+		}
+		cfg.set("sell-prices-simple", simpleItems);
+		cfg.set("sell-prices", gson.toJson(advancedItems));
 		this.saveConfig();
 	}
 
@@ -258,6 +267,50 @@ public class Main extends JavaPlugin {
 
 		p.openInventory(inv);
 		this.getOpenShops().put(p, inv);
+		
+	}
+	
+	/**
+	 * Loads all item configurations from the config.yml
+	 */
+	private void loadItems() {
+		this.cfg = this.getConfig();
+		
+		if(this.cfg.getString("sell-prices") != null) {
+			customItems = gson.fromJson(cfg.getString("sell-prices"), new TypeToken<List<CustomItem>>(){}.getType());
+		}
+		
+		// converting simple items to custom items
+		if(this.cfg.contains("sell-prices-simple")) {
+			for(String entry : this.cfg.getStringList("sell-prices-simple")) {
+				try {
+					CustomItem ci = new CustomItem(new ItemStack(Material.valueOf(entry.split(":")[0])), Double.parseDouble(entry.split(":")[1]));
+					customItems.add(ci);
+				}catch(Exception e) {
+					System.out.println("Error in config.yml: " + entry);
+				}
+			}
+		}else {
+			// adding default materials
+			List<String> entries = Arrays.stream(Material.values()).map(v -> v.name() + ":0.0").collect(Collectors.toList());
+			this.cfg.set("sell-prices-simple", entries);
+			this.saveConfig();
+			for(Material mat : Material.values()) {
+				customItems.add(new CustomItem(new ItemStack(mat), 0d));
+			}
+		}
+	}
+	
+	/**
+	 * @return amount of configured custom items
+	 */
+	public long getCustomItemCount() {
+		return customItems.stream().filter(p -> !p.isSimpleItem()).count();
+	}
+	
+	public void reloadItems() {
+		this.reloadConfig();
+		loadItems();
 		
 	}
 }
