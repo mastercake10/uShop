@@ -3,9 +3,11 @@ package xyz.spaceio.ushop;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -46,7 +48,7 @@ public class Main extends JavaPlugin {
 	/*
 	 * Inventories that are currently open
 	 */
-	private HashMap<Player, Inventory> openShops = new HashMap<Player, Inventory>();
+	private Map<Player, Inventory> openShops = Collections.synchronizedMap(new HashMap<Player, Inventory>());
 
 	/*
 	 * List that contains all information about sell items
@@ -73,49 +75,52 @@ public class Main extends JavaPlugin {
 
 		this.getServer().getPluginManager().registerEvents(new Listeners(this), this);
 
+		// async update task
 		this.getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
-			Iterator<Player> it = openShops.keySet().iterator();
-			while (it.hasNext()) {
-				Player p = it.next();
-				if (p.getOpenInventory().getTopInventory() != null) {
-					if (p.getOpenInventory().getTopInventory().getTitle() != null) {
-						if (p.getOpenInventory().getTopInventory().getTitle()
-								.equals(cfg.getString("gui-name").replace("&", "§"))) {
-							
-							// Aktuallisieren
-							ItemStack[] invContent = p.getOpenInventory().getTopInventory().getContents();
-							invContent[p.getOpenInventory().getTopInventory().getSize() - 5] = null;
-							
-							List<String> lore = new ArrayList<String>();
-							double[] totalPrice = {0d};
-							
-							getSalableItems(invContent).forEach((item, amount) -> {
-								double totalStackPrice = item.getPrice() * amount;
-								totalPrice[0] += totalStackPrice;
-								lore.addAll(getCustomItemDescription(item, amount));
-							});
-
-							ItemStack sell = p.getOpenInventory().getTopInventory()
-									.getItem(p.getOpenInventory().getTopInventory().getSize() - 5);
-							if (sell == null)
-								continue;
-							if (sell.getItemMeta() == null)
-								continue;
-							ItemMeta im = sell.getItemMeta();
-							im.setDisplayName(cfg.getString("gui-sellitem.displayname").replace('&', '§')
-									.replace("%total%", economy.format(totalPrice[0])));
-							im.setLore(lore);
-							sell.setItemMeta(im);
-
-							p.getOpenInventory().getTopInventory()
-									.setItem(p.getOpenInventory().getTopInventory().getSize() - 5, sell);
-						} else {
-							ItemStack[] stacks = openShops.get(p).getContents();
-							stacks[openShops.get(p).getSize() - 5] = null;
-							addToInv(p.getInventory(), stacks);
-							openShops.remove(p);
+			synchronized(openShops) {
+				Iterator<Player> it = openShops.keySet().iterator();
+				while (it.hasNext()) {
+					Player p = it.next();
+					if (p.getOpenInventory().getTopInventory() != null) {
+						if (p.getOpenInventory().getTopInventory().getTitle() != null) {
+							if (p.getOpenInventory().getTopInventory().getTitle()
+									.equals(cfg.getString("gui-name").replace("&", "§"))) {
+								
+								// Aktuallisieren
+								ItemStack[] invContent = p.getOpenInventory().getTopInventory().getContents();
+								invContent[p.getOpenInventory().getTopInventory().getSize() - 5] = null;
+								
+								List<String> lore = new ArrayList<String>();
+								double[] totalPrice = {0d};
+								
+								getSalableItems(invContent).forEach((item, amount) -> {
+									double totalStackPrice = item.getPrice() * amount;
+									totalPrice[0] += totalStackPrice;
+									lore.addAll(getCustomItemDescription(item, amount));
+								});
+	
+								ItemStack sell = p.getOpenInventory().getTopInventory()
+										.getItem(p.getOpenInventory().getTopInventory().getSize() - 5);
+								if (sell == null)
+									continue;
+								if (sell.getItemMeta() == null)
+									continue;
+								ItemMeta im = sell.getItemMeta();
+								im.setDisplayName(cfg.getString("gui-sellitem.displayname").replace('&', '§')
+										.replace("%total%", economy.format(totalPrice[0])));
+								im.setLore(lore);
+								sell.setItemMeta(im);
+	
+								p.getOpenInventory().getTopInventory()
+										.setItem(p.getOpenInventory().getTopInventory().getSize() - 5, sell);
+							} else {
+								ItemStack[] stacks = openShops.get(p).getContents();
+								stacks[openShops.get(p).getSize() - 5] = null;
+								addToInv(p.getInventory(), stacks);
+								openShops.remove(p);
+							}
+	
 						}
-
 					}
 				}
 			}
@@ -207,7 +212,7 @@ public class Main extends JavaPlugin {
 		return economy;
 	}
 
-	public HashMap<Player, Inventory> getOpenShops() {
+	public Map<Player, Inventory> getOpenShops() {
 		return openShops;
 	}
 
@@ -266,7 +271,9 @@ public class Main extends JavaPlugin {
 		inv.setItem(inv.getSize() - 5, is);
 
 		p.openInventory(inv);
-		this.getOpenShops().put(p, inv);
+		synchronized(openShops) {
+			this.getOpenShops().put(p, inv);	
+		}
 		
 	}
 	

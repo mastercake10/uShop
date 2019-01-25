@@ -29,7 +29,7 @@ public class Listeners implements Listener {
 				if(e.getInventory().getTitle().equals(plugin.getConfig().getString("gui-name").replace("&", "§"))){
 					if(e.getCurrentItem() != null){
 						
-						if(e.getSlot() == e.getInventory().getSize() - 5){
+						if(e.getSlot() == e.getInventory().getSize() - 5 && e.getInventory().getViewers().size() > 0){
 							e.setCancelled(true);
 							e.setResult(Result.DENY);
 							
