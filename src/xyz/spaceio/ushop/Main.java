@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -11,7 +12,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -80,13 +80,19 @@ public class Main extends JavaPlugin {
 			synchronized(openShops) {
 				Iterator<Player> it = openShops.keySet().iterator();
 				while (it.hasNext()) {
-					Player p = it.next();
+					Player p;
+					try {
+						p = it.next();	
+					} catch(ConcurrentModificationException ex) {
+						// Triggered in some rare cases, ignore it
+						continue;
+					}
 					if (p.getOpenInventory().getTopInventory() != null) {
 						if (p.getOpenInventory().getTopInventory().getTitle() != null) {
 							if (p.getOpenInventory().getTopInventory().getTitle()
 									.equals(cfg.getString("gui-name").replace("&", "§"))) {
 								
-								// Aktuallisieren
+								// Update
 								ItemStack[] invContent = p.getOpenInventory().getTopInventory().getContents();
 								invContent[p.getOpenInventory().getTopInventory().getSize() - 5] = null;
 								
