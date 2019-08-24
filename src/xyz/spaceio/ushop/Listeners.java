@@ -28,53 +28,63 @@ public class Listeners implements Listener {
 		
 		Inventory shopInventory = e.getInventory();
 		
-		if(plugin.getOpenShops().values().contains(shopInventory)) {
-			if(e.getCurrentItem() != null){
+		if(e.getWhoClicked() instanceof Player) {
+			Player player = (Player) e.getWhoClicked();
+			if(plugin.getOpenShops().containsKey(player)) {
+				if(!plugin.getOpenShops().get(player).equals(shopInventory)) {
+					return;
+				}
+			}else {
+				return;
+			}
+		}
+
+		if(e.getCurrentItem() != null){
+			
+			if(e.getSlot() == e.getInventory().getSize() - 5 && e.getInventory().getViewers().size() > 0){
+				e.setCancelled(true);
+				e.setResult(Result.DENY);
 				
-				if(e.getSlot() == e.getInventory().getSize() - 5 && e.getInventory().getViewers().size() > 0){
-					e.setCancelled(true);
-					e.setResult(Result.DENY);
+				final Player p = (Player) e.getInventory().getViewers().get(0);
+				
+				if(cooldowns.containsKey(p.getName())){
+					if(cooldowns.get(p.getName()) + 2000 > System.currentTimeMillis()){
+						return;
+					}
+				}
+				if(e.getClick() != ClickType.SHIFT_RIGHT && e.getClick() != ClickType.SHIFT_LEFT){
+					//REMOVE SELL ITEM
+					e.getInventory().setItem(e.getSlot(), new ItemStack(Material.AIR));
+					if(e.getCursor() != null){
+						e.getInventory().addItem(e.getCursor());
+						e.setCursor(null);
+					}
+					//SELL
+					double total = plugin.calcWorthOfContent(e.getInventory().getContents());
+					plugin.getEconomy().depositPlayer(p, total);
+					p.sendMessage(plugin.getConfig().getString("message-sold").replace('&', '§').replace("%total%", plugin.getEconomy().format(total)));
 					
-					final Player p = (Player) e.getInventory().getViewers().get(0);
-					
-					if(cooldowns.containsKey(p.getName())){
-						if(cooldowns.get(p.getName()) + 2000 > System.currentTimeMillis()){
-							return;
+					// put unsalable items back to player's inventory
+					for(ItemStack is : e.getInventory().getContents()){
+						if(is != null && is.getType() != Material.AIR && !plugin.isSalable(is)){
+							p.getInventory().addItem(is);
 						}
 					}
-					if(e.getClick() != ClickType.SHIFT_RIGHT && e.getClick() != ClickType.SHIFT_LEFT){
-						//REMOVE SELL ITEM
-						e.getInventory().setItem(e.getSlot(), new ItemStack(Material.AIR));
-						if(e.getCursor() != null){
-							e.getInventory().addItem(e.getCursor());
-							e.setCursor(null);
+					
+					cooldowns.put(p.getName(), System.currentTimeMillis());
+					e.getInventory().clear();
+					//Run later because the inventory bugs if closed immediately.
+					Bukkit.getScheduler().runTaskLater(plugin, new Runnable(){
+						public void run(){
+							p.closeInventory();
+							p.updateInventory();
 						}
-						//SELL
-						double total = plugin.calcWorthOfContent(e.getInventory().getContents());
-						plugin.getEconomy().depositPlayer(p, total);
-						p.sendMessage(plugin.getConfig().getString("message-sold").replace('&', '§').replace("%total%", plugin.getEconomy().format(total)));
-						
-						// put unsalable items back to player's inventory
-						for(ItemStack is : e.getInventory().getContents()){
-							if(is != null && is.getType() != Material.AIR && !plugin.isSalable(is)){
-								p.getInventory().addItem(is);
-							}
-						}
-						
-						cooldowns.put(p.getName(), System.currentTimeMillis());
-						e.getInventory().clear();
-						//Run later because the inventory bugs if closed immediately.
-						Bukkit.getScheduler().runTaskLater(plugin, new Runnable(){
-							public void run(){
-								p.closeInventory();
-								p.updateInventory();
-							}
-						}, 5L);	
-					}
+					}, 5L);	
 				}
 			}
 		}
-		
 	}
+		
+	
 
 }
