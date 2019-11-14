@@ -188,7 +188,7 @@ public class Main extends JavaPlugin {
 			if (stack != null) {
 				// check if item is in the custom item list
 				Optional<CustomItem> opt = findCustomItem(stack);
-				if(opt.isPresent()) {
+				if(opt.isPresent() && this.isSalable(stack)) {
 					// add item to map
 					customItemsMap.compute(opt.get(), (k, v) -> v == null ? stack.getAmount() : v + stack.getAmount());
 				}
@@ -214,8 +214,13 @@ public class Main extends JavaPlugin {
 	
 	public boolean isSalable(ItemStack is) {
 		if(is == null || is.getType() == null || is.getType() == Material.AIR) return false;
-		
-		return customItems.stream().anyMatch(v -> v.matches(is));
+		Optional<CustomItem> customItemOptional = this.findCustomItem(is);
+		if(customItemOptional.isPresent()) {
+			if(customItemOptional.get().getPrice() > 0d) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public Economy getEconomy() {
