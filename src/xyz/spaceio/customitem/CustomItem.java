@@ -1,6 +1,7 @@
-package xyz.spaceio.ushop;
+package xyz.spaceio.customitem;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,8 @@ public class CustomItem implements ConfigurationSerializable {
 	private List<String> lore;
 
 	private double price;
+	
+	private List<Flags> flags = new ArrayList<Flags>();
 
 	public CustomItem(ItemStack is, double price) {
 		this.price = price;
@@ -72,43 +75,48 @@ public class CustomItem implements ConfigurationSerializable {
 			return false;
 		}
 		
-		if (is.hasItemMeta() != hasMeta) {
+		if (is.hasItemMeta() != hasMeta && !hasFlag(Flags.IGNORE_META)) {
 			return false;
 		}
 		
-		if(is.getDurability() != durability) {
+		if(is.getDurability() != durability && !hasFlag(Flags.IGNORE_DURABILITY)) {
 			return false;
 		}
 	
-		if (hasMeta) {
+		if (hasMeta && !hasFlag(Flags.IGNORE_META)) {
 			
-			if(displayname == null && is.getItemMeta().hasDisplayName() || displayname != null && !is.getItemMeta().hasDisplayName()) {
-				return false;
-			}
-			
-			if(displayname != null && is.getItemMeta().hasDisplayName() && !displayname.equals(is.getItemMeta().getDisplayName())) {
-				return false;
-			}
-			
-			if(enchantements != null && is.getEnchantments().size() != 0) {
-				boolean matchesEnchantments = is.getEnchantments().entrySet().stream().allMatch(entry -> {
-					if(enchantements.containsKey(entry.getKey().getKey().getKey())) {
-						if(entry.getValue() == enchantements.get(entry.getKey().getKey().getKey())){
-							return true;
-						}
-					}
-					return false;
-				});
-				
-				if(!matchesEnchantments) {
+			if(!hasFlag(Flags.IGNORE_DISPLAYNAME)) {
+				if(displayname == null && is.getItemMeta().hasDisplayName() || displayname != null && !is.getItemMeta().hasDisplayName()) {
 					return false;
 				}
 				
-			}else if(!(enchantements.size() == 0 && is.getEnchantments().size() == 0)){
-				return false;
+				if(displayname != null && is.getItemMeta().hasDisplayName() && !displayname.equals(is.getItemMeta().getDisplayName())) {
+					return false;
+				}	
 			}
 			
-			if(lore != null && is.getItemMeta().getLore().size() != 0) {
+			if(!hasFlag(Flags.IGNORE_ENCHANTMENTS)) {
+				
+				if(enchantements != null && is.getEnchantments().size() != 0) {
+					boolean matchesEnchantments = is.getEnchantments().entrySet().stream().allMatch(entry -> {
+						if(enchantements.containsKey(entry.getKey().getKey().getKey())) {
+							if(entry.getValue() == enchantements.get(entry.getKey().getKey().getKey())){
+								return true;
+							}
+						}
+						return false;
+					});
+					
+					if(!matchesEnchantments) {
+						return false;
+					}
+					
+				}else if(!(enchantements.size() == 0 && is.getEnchantments().size() == 0)){
+					return false;
+				}
+			}
+			
+			if(lore != null && is.getItemMeta().getLore().size() != 0 && !hasFlag(Flags.IGNORE_LORE)) {
 				int[] matches = {0};
 				lore.forEach((line) -> {
 					if(is.getItemMeta().getLore().contains(line)) {
@@ -190,5 +198,21 @@ public class CustomItem implements ConfigurationSerializable {
 
 	public void setPrice(double price) {
 		this.price = price;
+	}
+	
+	public List<Flags> getFlags(){
+		return flags;
+	}
+	
+	public void addFlag(Flags flag) {
+		flags.add(flag);
+	}
+	
+	public boolean hasFlag(Flags flag) {
+		return flags.contains(flag);
+	}
+	
+	public void removeFlag(Flags flag) {
+		flags.remove(flag);
 	}
 }

@@ -33,6 +33,7 @@ import com.google.gson.reflect.TypeToken;
 
 import de.Linus122.SpaceIOMetrics.Metrics;
 import net.milkbowl.vault.economy.Economy;
+import xyz.spaceio.customitem.CustomItem;
 
 public class Main extends JavaPlugin {
 
@@ -150,6 +151,10 @@ public class Main extends JavaPlugin {
 		// adding enchantements
 		item.getEnchantements().forEach((enchantement, level) -> {
 			list.add(String.format("§7%s %s", WordUtils.capitalize(enchantement), Utils.toRoman(level)));
+		});
+		
+		item.getFlags().forEach(flag -> {
+			list.add(String.format("§e%s", flag.name().toLowerCase()));
 		});
 		
 		return list;

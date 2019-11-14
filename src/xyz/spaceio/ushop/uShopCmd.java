@@ -1,7 +1,10 @@
 package xyz.spaceio.ushop;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -10,6 +13,9 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+
+import xyz.spaceio.customitem.CustomItem;
+import xyz.spaceio.customitem.Flags;
 
 public class uShopCmd implements CommandExecutor {
 
@@ -30,10 +36,10 @@ public class uShopCmd implements CommandExecutor {
 				cs.sendMessage("§aConfig.yml reloaded!");
 				plugin.reloadItems();
 				return true;
-			} else if (args[0].equalsIgnoreCase("setprice")) {
+			} else if (args[0].equalsIgnoreCase("add")) {
 				if (args.length > 1) {
 					if (!(cs instanceof Player)) {
-						cs.sendMessage("You have to be a player!");
+						cs.sendMessage("You need to be a player!");
 						return true;
 					}
 					Player p = (Player) cs;
@@ -44,6 +50,25 @@ public class uShopCmd implements CommandExecutor {
 								ItemStack inHand = p.getInventory().getItemInMainHand();
 								double price = Double.parseDouble(args[1]);
 								
+								
+								CustomItem customItem = new CustomItem(p.getInventory().getItemInMainHand(), price);
+			
+								if(args.length > 2) {
+									// handling flags
+									for(int i = 2; i < args.length; i++) {
+										String flagName = args[i].toUpperCase();
+										try{
+											Flags flag = Flags.valueOf(flagName);
+											customItem.addFlag(flag);
+										}catch(Exception e) {
+											cs.sendMessage("§cFlag " + flagName + " not found. Valid flags are:");
+											List<String> flags = Arrays.stream(Flags.values()).map(flag -> flag.name().toLowerCase()).collect(Collectors.toList());
+											cs.sendMessage("§a" + String.join(", ", flags));
+											return true;
+										}
+									}
+								}
+								
 								Optional<CustomItem> result = plugin.findCustomItem(inHand);
 								if(result.isPresent()) {
 									plugin.getCustomItems().remove(result.get());
@@ -51,11 +76,11 @@ public class uShopCmd implements CommandExecutor {
 								}else {
 									p.sendMessage("§aSuccessfully added item:");
 								}
-								CustomItem i = new CustomItem(p.getInventory().getItemInMainHand(), price);
-								plugin.addCustomItem(i);
+								
+								plugin.addCustomItem(customItem);
 								plugin.saveMainConfig();
 								
-								p.sendMessage(plugin.getCustomItemDescription(i, 1).stream().toArray(String[]::new));
+								p.sendMessage(plugin.getCustomItemDescription(customItem, 1).stream().toArray(String[]::new));
 								return true;
 							}
 						}
@@ -96,10 +121,10 @@ public class uShopCmd implements CommandExecutor {
 
 	private void showHelp(CommandSender cs) {
 		cs.sendMessage("§c -- uShop v" + plugin.getDescription().getVersion() + " help: --");
-		cs.sendMessage("§e/ushop §creload §r- reloads the config");
-		cs.sendMessage("§e/ushop §csetprice <price> §r- sets a custom price for an item with custom lore, displayname, durability and enchants");
-		cs.sendMessage("§e/ushop §copen <player> §r- opens the shop for other players");
-		cs.sendMessage("§e/ushop §cconvert §r- will convert your essentials worth list to the ushop one");
+		cs.sendMessage("§e/ushop §areload §r- reloads the config");
+		cs.sendMessage("§e/ushop §aadd <price> [flags ...] §r- sets a custom price for an item with custom lore, displayname, durability and enchants");
+		cs.sendMessage("§e/ushop §aopen <player> §r- opens the shop for other players");
+		cs.sendMessage("§e/ushop §aconvert §r- will convert your essentials worth list to the ushop one");
 		cs.sendMessage("§cCurrently configured custom items (with NBT Data): §a" + plugin.getCustomItemCount());
 	}
 
