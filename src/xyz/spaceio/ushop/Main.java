@@ -21,6 +21,7 @@ import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -48,7 +49,7 @@ public class Main extends JavaPlugin {
 	/*
 	 * Inventories that are currently open
 	 */
-	private Map<Player, Inventory> openShops = Collections.synchronizedMap(new HashMap<Player, Inventory>());
+	private Map<Player, Inventory> openShops = new HashMap<Player, Inventory>();
 
 	/*
 	 * List that contains all information about sell items
@@ -265,6 +266,10 @@ public class Main extends JavaPlugin {
 	public void addCustomItem(CustomItem i) {
 		customItems.add(i);
 	}
+	
+	public boolean isShopGUI(InventoryView inventoryView) {
+		return inventoryView.getTitle().equals(this.getConfig().getString("gui-name").replace("&", "§"));
+	}
 
 	public void openShop(Player p) {
 		Inventory inv = Bukkit.createInventory(null, 9 * this.getConfig().getInt("gui-rows"),
@@ -277,9 +282,8 @@ public class Main extends JavaPlugin {
 		inv.setItem(inv.getSize() - 5, is);
 
 		p.openInventory(inv);
-		synchronized(openShops) {
-			this.getOpenShops().put(p, inv);	
-		}
+		this.getOpenShops().put(p, inv);	
+		
 		
 	}
 	

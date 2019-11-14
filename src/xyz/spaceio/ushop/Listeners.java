@@ -25,18 +25,13 @@ public class Listeners implements Listener {
 	@EventHandler
 	public void onClick(final InventoryClickEvent e){
 		if(e.getInventory() == null) return;
-		
-		Inventory shopInventory = e.getInventory();
-		
+
 		if(e.getWhoClicked() instanceof Player) {
-			Player player = (Player) e.getWhoClicked();
-			if(plugin.getOpenShops().containsKey(player)) {
-				if(!plugin.getOpenShops().get(player).equals(shopInventory)) {
-					return;
-				}
-			}else {
+			if(!plugin.isShopGUI(e.getView())) {
 				return;
 			}
+		}else {
+			return;
 		}
 
 		if(e.getCurrentItem() != null){
