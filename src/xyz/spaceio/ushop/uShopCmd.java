@@ -1,5 +1,6 @@
 package xyz.spaceio.ushop;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.bukkit.Bukkit;
@@ -78,7 +79,14 @@ public class uShopCmd implements CommandExecutor {
 					cs.sendMessage("§cYou need to specify a playername in the command!");
 					return true;
 				}
+			}else if (args[0].equalsIgnoreCase("convert")) {
+
+				List<String> log = EssentialsWorthConverter.convert(plugin);
+				cs.sendMessage(log.toArray(new String[0]));
+				
+				return true;
 			}
+				
 		}
 
 		showHelp(cs);
@@ -91,6 +99,7 @@ public class uShopCmd implements CommandExecutor {
 		cs.sendMessage("§e/ushop §creload §r- reloads the config");
 		cs.sendMessage("§e/ushop §csetprice <price> §r- sets a custom price for an item with custom lore, displayname, durability and enchants");
 		cs.sendMessage("§e/ushop §copen <player> §r- opens the shop for other players");
+		cs.sendMessage("§e/ushop §cconvert §r- will convert your essentials worth list to the ushop one");
 		cs.sendMessage("§cCurrently configured custom items (with NBT Data): §a" + plugin.getCustomItemCount());
 	}
 

@@ -155,6 +155,9 @@ public class Main extends JavaPlugin {
 		return list;
 	}
 
+	/**
+	 * Saved all Custom items to the config.
+	 */
 	public void saveMainConfig() {
 		List<CustomItem> advancedItems = new ArrayList<CustomItem>();
 		List<String> simpleItems = new ArrayList<String>();
