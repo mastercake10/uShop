@@ -24,14 +24,14 @@ public class EssentialsWorthConverter {
 		List<String> output = new ArrayList<String>();
 		
 		if(!Bukkit.getPluginManager().isPluginEnabled("Essentials")){
-			output.add("§cEssentials not installed!");
+			output.add("Â§cEssentials not installed!");
 			return output;
 		}
 		
 		File worthFile = new File("plugins/Essentials/worth.yml");
 		
 		if(!worthFile.exists()) {
-			output.add("§cWorth file does not exists! (" + worthFile.getAbsolutePath() + ")");
+			output.add("Â§cWorth file does not exists! (" + worthFile.getAbsolutePath() + ")");
 			return output;
 		}
 		
@@ -51,7 +51,7 @@ public class EssentialsWorthConverter {
 				mat = stupidEssentialsLegacyRenmings.getOrDefault(itemName, null);
 			}
 			if(mat == null) {
-				output.add("§cError: Material for item name " + itemName + " not found, continue...");
+				output.add("Â§cError: Material for item name " + itemName + " not found, continue...");
 				continue;
 			}
 			Optional<CustomItem> customItemOpt = plugin.findCustomItem(new ItemStack(mat));
@@ -68,7 +68,7 @@ public class EssentialsWorthConverter {
 		}
 
 		plugin.saveMainConfig();
-		output.add(String.format("§aSuccessfully converted §c%d §aitems!", count));
+		output.add(String.format("Â§aSuccessfully converted Â§c%d Â§aitems!", count));
 		
 		return output;
 	}

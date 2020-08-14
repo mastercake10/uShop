@@ -28,12 +28,12 @@ public class uShopCmd implements CommandExecutor {
 	@Override
 	public boolean onCommand(CommandSender cs, Command arg1, String arg2, String[] args) {
 		if (!cs.hasPermission("ushop.admin")) {
-			cs.sendMessage("§cYou dont have permissions to use this command!");
+			cs.sendMessage("Â§cYou dont have permissions to use this command!");
 			return true;
 		}
 		if (args.length > 0) {
 			if (args[0].equalsIgnoreCase("reload")) {
-				cs.sendMessage("§aConfig.yml reloaded!");
+				cs.sendMessage("Â§aConfig.yml reloaded!");
 				plugin.reloadItems();
 				return true;
 			} else if (args[0].equalsIgnoreCase("add")) {
@@ -61,9 +61,9 @@ public class uShopCmd implements CommandExecutor {
 											Flags flag = Flags.valueOf(flagName);
 											customItem.addFlag(flag);
 										}catch(Exception e) {
-											cs.sendMessage("§cFlag " + flagName + " not found. Valid flags are:");
+											cs.sendMessage("Â§cFlag " + flagName + " not found. Valid flags are:");
 											List<String> flags = Arrays.stream(Flags.values()).map(flag -> flag.name().toLowerCase()).collect(Collectors.toList());
-											cs.sendMessage("§a" + String.join(", ", flags));
+											cs.sendMessage("Â§a" + String.join(", ", flags));
 											return true;
 										}
 									}
@@ -72,9 +72,9 @@ public class uShopCmd implements CommandExecutor {
 								Optional<CustomItem> result = plugin.findCustomItem(inHand);
 								if(result.isPresent()) {
 									plugin.getCustomItems().remove(result.get());
-									p.sendMessage("§aSuccessfully updated item:");
+									p.sendMessage("Â§aSuccessfully updated item:");
 								}else {
-									p.sendMessage("§aSuccessfully added item:");
+									p.sendMessage("Â§aSuccessfully added item:");
 								}
 								
 								plugin.addCustomItem(customItem);
@@ -85,7 +85,7 @@ public class uShopCmd implements CommandExecutor {
 							}
 						}
 					}
-					cs.sendMessage("§cYou need to hold an item in your hand!");
+					cs.sendMessage("Â§cYou need to hold an item in your hand!");
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("open")) {
@@ -94,14 +94,14 @@ public class uShopCmd implements CommandExecutor {
 					Player p = Bukkit.getPlayer(playername);
 					if(p != null) {
 						plugin.openShop(p);
-						cs.sendMessage("§cShop opened.");
+						cs.sendMessage("Â§cShop opened.");
 						return true;
 					}else {
-						cs.sendMessage("§cPlayer is not online.");
+						cs.sendMessage("Â§cPlayer is not online.");
 						return true;
 					}
 				}else {
-					cs.sendMessage("§cYou need to specify a playername in the command!");
+					cs.sendMessage("Â§cYou need to specify a playername in the command!");
 					return true;
 				}
 			}else if (args[0].equalsIgnoreCase("convert")) {
@@ -120,12 +120,12 @@ public class uShopCmd implements CommandExecutor {
 	}
 
 	private void showHelp(CommandSender cs) {
-		cs.sendMessage("§c -- uShop v" + plugin.getDescription().getVersion() + " help: --");
-		cs.sendMessage("§e/ushop §areload §r- reloads the config");
-		cs.sendMessage("§e/ushop §aadd <price> [flags ...] §r- sets a custom price for an item with custom lore, displayname, durability and enchants");
-		cs.sendMessage("§e/ushop §aopen <player> §r- opens the shop for other players");
-		cs.sendMessage("§e/ushop §aconvert §r- will convert your essentials worth list to the ushop one");
-		cs.sendMessage("§cCurrently configured custom items (with NBT Data): §a" + plugin.getCustomItemCount());
+		cs.sendMessage("Â§c -- uShop v" + plugin.getDescription().getVersion() + " help: --");
+		cs.sendMessage("Â§e/ushop Â§areload Â§r- reloads the config");
+		cs.sendMessage("Â§e/ushop Â§aadd <price> [flags ...] Â§r- sets a custom price for an item with custom lore, displayname, durability and enchants");
+		cs.sendMessage("Â§e/ushop Â§aopen <player> Â§r- opens the shop for other players");
+		cs.sendMessage("Â§e/ushop Â§aconvert Â§r- will convert your essentials worth list to the ushop one");
+		cs.sendMessage("Â§cCurrently configured custom items (with NBT Data): Â§a" + plugin.getCustomItemCount());
 	}
 
 }
