@@ -1,10 +1,14 @@
 package xyz.spaceio.ushop;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.ConcurrentModificationException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -21,8 +25,10 @@ import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.SimplePluginManager;
@@ -62,6 +68,8 @@ public class Main extends JavaPlugin {
 	 */
 	
 	private Gson gson = new Gson();
+	
+	private PrintStream logs;
 
 	@Override
 	public void onEnable() {
@@ -76,6 +84,16 @@ public class Main extends JavaPlugin {
 		this.getCommand("ushop").setExecutor(new uShopCmd(this));
 
 		this.getServer().getPluginManager().registerEvents(new Listeners(this), this);
+		
+		String fileName = new SimpleDateFormat("yyyy'-'MM'-'dd'_'HH'-'mm'-'ss'_'zzz'.log'").format(new Date());
+        File dir = new File(getDataFolder(), "logs");
+        dir.mkdirs();
+        File logs = new File(dir, fileName);
+        try {
+			this.logs = new PrintStream(logs);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 
 		// async update task
 		this.getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
@@ -114,7 +132,7 @@ public class Main extends JavaPlugin {
 								continue;
 							
 							ItemMeta im = sell.getItemMeta();
-							im.setDisplayName(cfg.getString("gui-sellitem.displayname").replace('&', 'ยง')
+							im.setDisplayName(cfg.getString("gui-sellitem.displayname").replace('&', 'ง')
 									.replace("%total%", economy.format(totalPrice[0])));
 							im.setLore(lore);
 							sell.setItemMeta(im);
@@ -124,6 +142,11 @@ public class Main extends JavaPlugin {
 						} else {
 							ItemStack[] stacks = openShops.get(p).getContents();
 							stacks[openShops.get(p).getSize() - 5] = null;
+							for (int i = 0; i < stacks.length; i++) {
+								if (stacks[i] != null && NBTUtils.getInt(stacks[i], "menuItem") == 1) {
+									stacks[i] = null;
+								}
+							}
 							addToInv(p.getInventory(), stacks);
 							openShops.remove(p);
 						}
@@ -137,11 +160,24 @@ public class Main extends JavaPlugin {
 		// init spaceio metrics
 		new Metrics(this);
 	}
+	
+	@Override
+	public void onDisable() {
+		logs.flush();
+		logs.close();
+	}
+
+	/**
+	 * @return the logs
+	 */
+	public PrintStream getLogs() {
+		return logs;
+	}
 
 	public List<String> getCustomItemDescription(CustomItem item, int amount){
 		List<String> list = new ArrayList<String>();
 		
-		final String itemEnumFormat = cfg.getString("gui-item-enumeration-format").replace("&", "ยง");
+		final String itemEnumFormat = cfg.getString("gui-item-enumeration-format").replace("&", "ง");
 	
 		String s = itemEnumFormat.replace("%amount%", amount + "")
 				.replace("%material%", item.getDisplayname() == null ? WordUtils.capitalize(item.getMaterial().toLowerCase().replace("_", " ")) : item.getDisplayname())
@@ -150,11 +186,11 @@ public class Main extends JavaPlugin {
 		
 		// adding enchantements
 		item.getEnchantements().forEach((enchantement, level) -> {
-			list.add(String.format("ยง7%s %s", WordUtils.capitalize(enchantement), Utils.toRoman(level)));
+			list.add(String.format("ง7%s %s", WordUtils.capitalize(enchantement), Utils.toRoman(level)));
 		});
 		
 		item.getFlags().forEach(flag -> {
-			list.add(String.format("ยงe%s", flag.name().toLowerCase()));
+			list.add(String.format("งe%s", flag.name().toLowerCase()));
 		});
 		
 		return list;
@@ -182,6 +218,7 @@ public class Main extends JavaPlugin {
 	public void addToInv(Inventory inv, ItemStack[] is) {
 		for (ItemStack stack : is) {
 			if (stack != null) {
+				
 				inv.addItem(stack);
 			}
 		}
@@ -191,13 +228,26 @@ public class Main extends JavaPlugin {
 		HashMap<CustomItem, Integer> customItemsMap = new HashMap<CustomItem, Integer>();
 		for (ItemStack stack : is) {
 			if (stack != null) {
-				// check if item is in the custom item list
-				Optional<CustomItem> opt = findCustomItem(stack);
-				if(opt.isPresent() && this.isSalable(stack)) {
-					// add item to map
-					customItemsMap.compute(opt.get(), (k, v) -> v == null ? stack.getAmount() : v + stack.getAmount());
-				}
-		
+				if (stack.getType().toString().toUpperCase().contains("SHULKER_BOX")) {
+					Inventory container = ((InventoryHolder) ((BlockStateMeta) stack.getItemMeta()).getBlockState()).getInventory();
+					for (int j = 0; j < container.getSize(); j++) {
+						ItemStack shulkerItem = container.getItem(j);
+						if (shulkerItem != null && !shulkerItem.getType().equals(Material.AIR)) {
+							Optional<CustomItem> opt = findCustomItem(shulkerItem);
+							if(opt.isPresent() && this.isSalable(shulkerItem)) {
+								// add item to map
+								customItemsMap.compute(opt.get(), (k, v) -> v == null ? shulkerItem.getAmount() : v + shulkerItem.getAmount());
+							}
+						}
+					}										
+				} else {
+					// check if item is in the custom item list
+					Optional<CustomItem> opt = findCustomItem(stack);
+					if(opt.isPresent() && this.isSalable(stack)) {
+						// add item to map
+						customItemsMap.compute(opt.get(), (k, v) -> v == null ? stack.getAmount() : v + stack.getAmount());
+					}
+				}		
 			}
 		}
 		return customItemsMap;
@@ -281,18 +331,26 @@ public class Main extends JavaPlugin {
 	}
 	
 	public boolean isShopGUI(InventoryView inventoryView) {
-		return inventoryView.getTitle().equals(this.getConfig().getString("gui-name").replace("&", "ยง"));
+		return inventoryView.getTitle().equals(this.getConfig().getString("gui-name").replace("&", "ง"));
 	}
 
 	public void openShop(Player p) {
 		Inventory inv = Bukkit.createInventory(null, 9 * this.getConfig().getInt("gui-rows"),
-				this.getConfig().getString("gui-name").replace("&", "ยง"));
+				this.getConfig().getString("gui-name").replace("&", "ง"));
 		ItemStack is = new ItemStack(Material.getMaterial(this.getConfig().getString("gui-sellitem.material")));
 		ItemMeta im = is.getItemMeta();
-		im.setDisplayName(this.getConfig().getString("gui-sellitem.displayname").replace('&', 'ยง').replace("%total%",
+		im.setDisplayName(this.getConfig().getString("gui-sellitem.displayname").replace('&', 'ง').replace("%total%",
 				this.getEconomy().format(0)));
 		is.setItemMeta(im);
 		inv.setItem(inv.getSize() - 5, is);
+		
+		ItemStack pane = new ItemStack(Material.YELLOW_STAINED_GLASS_PANE);
+		pane = NBTUtils.set(pane, 1, "menuItem");
+		for (int i = inv.getSize() - 9; i < inv.getSize(); i++) {
+			if (inv.getItem(i) == null || inv.getItem(i).getType().equals(Material.AIR)) {
+				inv.setItem(i, pane.clone());
+			}
+		}
 
 		p.openInventory(inv);
 		this.getOpenShops().put(p, inv);	
