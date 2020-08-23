@@ -3,7 +3,14 @@ gui-rows: 5
 gui-sellitem:
   material: "EMERALD"
   displayname: "&cClick to Sell (&a%total%&c)"
+gui-bottomrow:
+  material: "GRAY_STAINED_GLASS_PANE"
+  displayname: ""
+receipt:
+  message: "&eHover over me to view receipt!"
+  header: "&bYou sold:"
+  format: "%amount%x &c%material%&r = &a %price%"
 gui-item-enumeration-format: "%amount%x &c%material%&r = &a %price%"
-message-sold: "&aSold all items for &c%total%&a!" 
+message-sold: "&aSold all items for &c%total%&a!"
 command: "sell"
 # sell prices. I suggest to use /ushop setprice in game for adding items, or use /ushop convert in order to use your essentialsx prices!
