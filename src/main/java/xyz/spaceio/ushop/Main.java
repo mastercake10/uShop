@@ -149,7 +149,7 @@ public class Main extends JavaPlugin {
 								}
 							}
 							addToInv(p.getInventory(), stacks);
-							openShops.remove(p);
+							it.remove();
 						}
 	
 						
