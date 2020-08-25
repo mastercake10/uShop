@@ -33,6 +33,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -67,10 +68,19 @@ public class Main extends JavaPlugin {
 	/*
 	 * Gson object for serializing processes
 	 */
-	
 	private Gson gson = new Gson();
-	
+
+
+	/**
+	 * Logger for logging all sell actions
+	 */
 	private PrintStream logs;
+
+	
+	/**
+	 * The plugin's main task for updating GUI elements  
+	 */
+	private BukkitTask pluginTask;
 
 	@Override
 	public void onEnable() {
@@ -97,7 +107,7 @@ public class Main extends JavaPlugin {
 		}
 
 		// async update task
-		this.getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
+		pluginTask = this.getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
 			synchronized(openShops) {
 				Iterator<Player> it = openShops.keySet().iterator();
 				while (it.hasNext()) {
@@ -166,6 +176,8 @@ public class Main extends JavaPlugin {
 	public void onDisable() {
 		logs.flush();
 		logs.close();
+		
+		pluginTask.cancel();
 	}
 
 	/**
