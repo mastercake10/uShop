@@ -5,4 +5,4 @@
 ![resource icon](https://www.spigotmc.org/data/resource_icons/15/15491.jpg?1477098303)
 
 ## Welcome to the uShop GitHub repository!
-uShop is a Spigot plugin compatible with Spigot versions 1.13.x, that allows your players to quick-sell items in a GUI!
+uShop is a Spigot plugin compatible with Spigot versions 1.13 - 1.16.x, that allows your players to quick-sell items in a GUI!
