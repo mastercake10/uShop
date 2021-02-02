@@ -6,3 +6,5 @@
 
 ## Welcome to the uShop GitHub repository!
 uShop is a Spigot plugin compatible with Spigot versions 1.13 - 1.16.x, that allows your players to quick-sell items in a GUI!
+
+Documentation, Tutorial and Setup: https://docs.spaceio.xyz/plugin/ushop/
