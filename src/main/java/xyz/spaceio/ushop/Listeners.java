@@ -50,8 +50,13 @@ public class Listeners implements Listener {
 		}
 
 		if(e.getCurrentItem() != null){
-			
-			if (NBTUtils.getInt(e.getCurrentItem(), "menuItem") == 1) {
+			// TODO
+//			if (NBTUtils.getInt(e.getCurrentItem(), "menuItem") == 1) {
+//				e.setCancelled(true);
+//				return;
+//			}
+			if(e.getSlot() >= e.getInventory().getSize() - 9 && e.getSlot() !=  e.getInventory().getSize() - 5) {
+				// skipping deco
 				e.setCancelled(true);
 				return;
 			}
@@ -77,7 +82,7 @@ public class Listeners implements Listener {
 					//SELL
 					double total = plugin.calcWorthOfContent(e.getInventory().getContents());
 					plugin.getEconomy().depositPlayer(p, total);
-					p.sendMessage(plugin.getConfig().getString("message-sold").replace('&', 'ง').replace("%total%", plugin.getEconomy().format(total)));
+					p.sendMessage(plugin.getConfig().getString("message-sold").replace('&', 'ยง').replace("%total%", plugin.getEconomy().format(total)));
 					
 					HashMap<CustomItem, Integer> listOfItems = plugin.getSalableItems(e.getInventory().getContents());
 					List<String> allLines = new ArrayList<>();
@@ -96,7 +101,8 @@ public class Listeners implements Listener {
 					
 					// put unsalable items back to player's inventory
 					for(ItemStack is : e.getInventory().getContents()){
-						if(is != null && NBTUtils.getInt(is, "menuItem") != 1){
+						// NBTUtils.getInt(is, "menuItem") != 1 TODO
+						if(is != null && e.getSlot() < e.getInventory().getSize() - 9){
 							if (is.getType().toString().toUpperCase().contains("SHULKER_BOX")) {
 								BlockStateMeta meta = (BlockStateMeta) is.getItemMeta();
 								BlockState state = meta.getBlockState();

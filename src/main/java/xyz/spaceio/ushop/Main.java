@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
@@ -39,7 +40,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import de.Linus122.SpaceIOMetrics.Metrics;
-import net.md_5.bungee.api.ChatColor;
 import net.milkbowl.vault.economy.Economy;
 import xyz.spaceio.customitem.CustomItem;
 
@@ -143,7 +143,7 @@ public class Main extends JavaPlugin {
 								continue;
 							
 							ItemMeta im = sell.getItemMeta();
-							im.setDisplayName(cfg.getString("gui-sellitem.displayname").replace('&', 'ง')
+							im.setDisplayName(cfg.getString("gui-sellitem.displayname").replace('&', 'ยง')
 									.replace("%total%", economy.format(totalPrice[0])));
 							im.setLore(lore);
 							sell.setItemMeta(im);
@@ -154,7 +154,8 @@ public class Main extends JavaPlugin {
 							ItemStack[] stacks = openShops.get(p).getContents();
 							stacks[openShops.get(p).getSize() - 5] = null;
 							for (int i = 0; i < stacks.length; i++) {
-								if (stacks[i] != null && NBTUtils.getInt(stacks[i], "menuItem") == 1) {
+
+								if (stacks[i] != null && i >= openShops.get(p).getSize() - 9) {
 									stacks[i] = null;
 								}
 							}
@@ -188,7 +189,7 @@ public class Main extends JavaPlugin {
 	}
 	
 	public List<String> getCustomItemDescription(CustomItem item, int amount){
-		return getCustomItemDescription(item, amount, cfg.getString("gui-item-enumeration-format").replace("&", "ง"));
+		return getCustomItemDescription(item, amount, cfg.getString("gui-item-enumeration-format").replace("&", "ยง"));
 	}
 
 	public List<String> getCustomItemDescription(CustomItem item, int amount, String itemEnumFormat){
@@ -201,11 +202,11 @@ public class Main extends JavaPlugin {
 		
 		// adding enchantements
 		item.getEnchantements().forEach((enchantement, level) -> {
-			list.add(String.format("ง7%s %s", WordUtils.capitalize(enchantement), Utils.toRoman(level)));
+			list.add(String.format("ยง7%s %s", WordUtils.capitalize(enchantement), Utils.toRoman(level)));
 		});
 		
 		item.getFlags().forEach(flag -> {
-			list.add(String.format("งe%s", flag.name().toLowerCase()));
+			list.add(String.format("ยงe%s", flag.name().toLowerCase()));
 		});
 		
 		return list;
@@ -346,15 +347,15 @@ public class Main extends JavaPlugin {
 	}
 	
 	public boolean isShopGUI(InventoryView inventoryView) {
-		return inventoryView.getTitle().equals(this.getConfig().getString("gui-name").replace("&", "ง"));
+		return inventoryView.getTitle().equals(this.getConfig().getString("gui-name").replace("&", "ยง"));
 	}
 
 	public void openShop(Player p) {
 		Inventory inv = Bukkit.createInventory(null, 9 * this.getConfig().getInt("gui-rows"),
-				this.getConfig().getString("gui-name").replace("&", "ง"));
+				this.getConfig().getString("gui-name").replace("&", "ยง"));
 		ItemStack is = new ItemStack(Material.getMaterial(this.getConfig().getString("gui-sellitem.material")));
 		ItemMeta im = is.getItemMeta();
-		im.setDisplayName(this.getConfig().getString("gui-sellitem.displayname").replace('&', 'ง').replace("%total%",
+		im.setDisplayName(this.getConfig().getString("gui-sellitem.displayname").replace('&', 'ยง').replace("%total%",
 				this.getEconomy().format(0)));
 		is.setItemMeta(im);
 		inv.setItem(inv.getSize() - 5, is);
@@ -363,7 +364,7 @@ public class Main extends JavaPlugin {
 		ItemMeta meta = pane.getItemMeta();
 		meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', cfg.getString("gui-bottomrow.displayname")));
 		pane.setItemMeta(meta);
-		pane = NBTUtils.set(pane, 1, "menuItem");
+		
 		for (int i = inv.getSize() - 9; i < inv.getSize(); i++) {
 			if (inv.getItem(i) == null || inv.getItem(i).getType().equals(Material.AIR)) {
 				inv.setItem(i, pane.clone());
