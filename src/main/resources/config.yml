@@ -5,7 +5,7 @@ gui-sellitem:
   displayname: "&cClick to Sell (&a%total%&c)"
 gui-bottomrow:
   material: "GRAY_STAINED_GLASS_PANE"
-  displayname: ""
+  displayname: " "
 receipt:
   message: "&eHover over me to view receipt!"
   header: "&bYou sold:"
