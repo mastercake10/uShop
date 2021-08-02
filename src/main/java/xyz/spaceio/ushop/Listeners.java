@@ -73,6 +73,11 @@ public class Listeners implements Listener {
 					}
 				}
 				if(e.getClick() != ClickType.SHIFT_RIGHT && e.getClick() != ClickType.SHIFT_LEFT){
+					//CALC WORTH
+					double total = plugin.calcWorthOfContent(e.getInventory().getContents());
+					if (total <= 0) {
+						return;
+					}
 					//REMOVE SELL ITEM
 					e.getInventory().setItem(e.getSlot(), new ItemStack(Material.AIR));
 					if(e.getCursor() != null){
@@ -80,7 +85,6 @@ public class Listeners implements Listener {
 						e.setCursor(null);
 					}
 					//SELL
-					double total = plugin.calcWorthOfContent(e.getInventory().getContents());
 					plugin.getEconomy().depositPlayer(p, total);
 					p.sendMessage(plugin.getConfig().getString("message-sold").replace('&', '§').replace("%total%", plugin.getEconomy().format(total)));
 					
