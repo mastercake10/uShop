@@ -3,7 +3,7 @@ depends: [Vault]
 soft-depends: [Essentials]
 author: Linus122
 main: xyz.spaceio.ushop.Main
-version: ${project.version}
+version: 2.2.2-SNAPSHOT
 api-version: 1.13
 description: easy sell your stuff
 commands:
