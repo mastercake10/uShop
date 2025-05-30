@@ -47,13 +47,18 @@ public class EssentialsWorthConverter {
 		for(String itemName : worthcfg.getConfigurationSection("worth").getKeys(false)) {
 			double price = worthcfg.getDouble("worth." + itemName);
 			Material mat = stupidEssentialsRenamings.getOrDefault(itemName, null);
-			if(mat == null) {
+			if (mat == null) {
 				mat = stupidEssentialsLegacyRenmings.getOrDefault(itemName, null);
 			}
-			if(mat == null) {
+			if (mat == null) {
 				output.add("§cError: Material for item name " + itemName + " not found, continue...");
 				continue;
 			}
+			if (!mat.isItem()) {
+				output.add("§cNot an item: " + mat);
+				continue;
+			}
+
 			Optional<CustomItem> customItemOpt = plugin.findCustomItem(new ItemStack(mat));
 			
 			if(customItemOpt.isPresent()) {
