@@ -1,10 +1,7 @@
 package xyz.spaceio.ushop;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
@@ -16,6 +13,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -36,6 +34,28 @@ public class Listeners implements Listener {
 		this.plugin = main;
 	}
 
+	@EventHandler
+	public void onClose(InventoryCloseEvent e) {
+		if (!plugin.getOpenShops().containsKey(e.getPlayer())) {
+			return;
+		}
+
+		if (plugin.getOpenShops().get(e.getPlayer()) != e.getInventory()) {
+			return;
+		}
+
+		// add items back to player's inventory
+		for (int i = 0; i < e.getInventory().getSize() - 9; i++) {
+			ItemStack itemStack = e.getInventory().getItem(i);
+
+			if (itemStack != null && itemStack.getType() != Material.AIR) {
+				e.getPlayer().getInventory().addItem(itemStack);
+			}
+		}
+
+		plugin.getOpenShops().remove(e.getPlayer());
+	}
+
 	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onClick(final InventoryClickEvent e){
@@ -48,13 +68,11 @@ public class Listeners implements Listener {
 		}else {
 			return;
 		}
+		Bukkit.getScheduler().runTaskLater(plugin, () -> {
+			this.plugin.updateUI(e.getView().getTopInventory());
+		}, 0L);
 
 		if(e.getCurrentItem() != null){
-			// TODO
-//			if (NBTUtils.getInt(e.getCurrentItem(), "menuItem") == 1) {
-//				e.setCancelled(true);
-//				return;
-//			}
 			if(e.getSlot() >= e.getInventory().getSize() - 9 && e.getSlot() !=  e.getInventory().getSize() - 5) {
 				// skipping deco
 				e.setCancelled(true);
@@ -100,30 +118,31 @@ public class Listeners implements Listener {
 					p.spigot().sendMessage(receipt);
 					
 					// put unsalable items back to player's inventory
-					for(ItemStack is : e.getInventory().getContents()){
-						// NBTUtils.getInt(is, "menuItem") != 1 TODO
-						if(is != null && e.getSlot() < e.getInventory().getSize() - 9){
-							if (is.getType().toString().toUpperCase().contains("SHULKER_BOX")) {
-								BlockStateMeta meta = (BlockStateMeta) is.getItemMeta();
-								BlockState state = meta.getBlockState();
-								Inventory container = ((InventoryHolder) state).getInventory();
-								for (int j = 0; j < container.getSize(); j++) {
-									ItemStack shulkerItem = container.getItem(j);
-									if (shulkerItem != null && !shulkerItem.getType().equals(Material.AIR)) {
-										if (shulkerItem.getType() != Material.AIR) {
-											if (plugin.isSalable(shulkerItem)) {
-												container.setItem(j, null);
-											}
+					for(int i = 0; i < e.getInventory().getSize() - 9; i++){
+						ItemStack is = e.getInventory().getItem(i);
+						if (is == null)
+							continue;
+						if (is.getType().toString().toUpperCase().contains("SHULKER_BOX")) {
+							BlockStateMeta meta = (BlockStateMeta) is.getItemMeta();
+							BlockState state = meta.getBlockState();
+							Inventory container = ((InventoryHolder) state).getInventory();
+							for (int j = 0; j < container.getSize(); j++) {
+								ItemStack shulkerItem = container.getItem(j);
+								if (shulkerItem != null && !shulkerItem.getType().equals(Material.AIR)) {
+									if (shulkerItem.getType() != Material.AIR) {
+										if (plugin.isSalable(shulkerItem)) {
+											container.setItem(j, null);
 										}
 									}
 								}
-								meta.setBlockState(state);
-								is.setItemMeta(meta);
-								p.getInventory().addItem(is);
-							} else if (is.getType() != Material.AIR && !plugin.isSalable(is)) {
-								p.getInventory().addItem(is);
 							}
+							meta.setBlockState(state);
+							is.setItemMeta(meta);
+							p.getInventory().addItem(is);
+						} else if (is.getType() != Material.AIR && !plugin.isSalable(is)) {
+							p.getInventory().addItem(is);
 						}
+
 					}
 					
 					cooldowns.put(p.getName(), System.currentTimeMillis());

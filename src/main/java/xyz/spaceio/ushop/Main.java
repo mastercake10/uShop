@@ -76,11 +76,6 @@ public class Main extends JavaPlugin {
 	 */
 	private PrintStream logs;
 
-	
-	/**
-	 * The plugin's main task for updating GUI elements  
-	 */
-	private BukkitTask pluginTask;
 
 	@Override
 	public void onEnable() {
@@ -106,69 +101,6 @@ public class Main extends JavaPlugin {
 			e.printStackTrace();
 		}
 
-		// async update task
-		pluginTask = this.getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
-			synchronized(openShops) {
-				Iterator<Player> it = openShops.keySet().iterator();
-				while (it.hasNext()) {
-					Player p;
-					try {
-						p = it.next();	
-					} catch(ConcurrentModificationException ex) {
-						// Triggered in some rare cases, ignore it
-						continue;
-					}
-					if (p.getOpenInventory().getTopInventory() != null) {
-						Inventory shopInventory = p.getOpenInventory().getTopInventory();
-						
-						if(this.getOpenShops().values().contains(shopInventory)) {
-							// Update
-							ItemStack[] invContent = shopInventory.getContents();
-							invContent[shopInventory.getSize() - 5] = null;
-							
-							List<String> lore = new ArrayList<String>();
-							double[] totalPrice = {0d};
-							
-							getSalableItems(invContent).forEach((item, amount) -> {
-								double totalStackPrice = item.getPrice() * amount;
-								totalPrice[0] += totalStackPrice;
-								lore.addAll(getCustomItemDescription(item, amount));
-							});
-
-							ItemStack sell = shopInventory.getItem(shopInventory.getSize() - 5);
-							
-							if (sell == null)
-								continue;
-							if (sell.getItemMeta() == null)
-								continue;
-							
-							ItemMeta im = sell.getItemMeta();
-							im.setDisplayName(cfg.getString("gui-sellitem.displayname").replace('&', '§')
-									.replace("%total%", economy.format(totalPrice[0])));
-							im.setLore(lore);
-							sell.setItemMeta(im);
-
-							shopInventory.setItem(shopInventory.getSize() - 5, sell);
-							
-						} else {
-							ItemStack[] stacks = openShops.get(p).getContents();
-							stacks[openShops.get(p).getSize() - 5] = null;
-							for (int i = 0; i < stacks.length; i++) {
-
-								if (stacks[i] != null && i >= openShops.get(p).getSize() - 9) {
-									stacks[i] = null;
-								}
-							}
-							addToInv(p.getInventory(), stacks);
-							it.remove();
-						}
-	
-						
-					}
-				}
-			}
-		}, 20L, 20L);
-		
 		// init spaceio metrics
 		new Metrics(this);
 	}
@@ -177,8 +109,6 @@ public class Main extends JavaPlugin {
 	public void onDisable() {
 		logs.flush();
 		logs.close();
-		
-		pluginTask.cancel();
 	}
 
 	/**
@@ -229,15 +159,6 @@ public class Main extends JavaPlugin {
 		cfg.set("sell-prices-simple", simpleItems);
 		cfg.set("sell-prices", gson.toJson(advancedItems));
 		this.saveConfig();
-	}
-
-	public void addToInv(Inventory inv, ItemStack[] is) {
-		for (ItemStack stack : is) {
-			if (stack != null) {
-				
-				inv.addItem(stack);
-			}
-		}
 	}
 
 	public HashMap<CustomItem, Integer> getSalableItems(ItemStack[] is) {
@@ -421,4 +342,35 @@ public class Main extends JavaPlugin {
 		loadItems();
 		
 	}
+
+	public void updateUI(Inventory shopInventory) {
+		// Update
+		ItemStack[] invContent = shopInventory.getContents();
+		invContent[shopInventory.getSize() - 5] = null;
+
+		List<String> lore = new ArrayList<String>();
+		double[] totalPrice = {0d};
+
+		getSalableItems(invContent).forEach((item, amount) -> {
+			double totalStackPrice = item.getPrice() * amount;
+			totalPrice[0] += totalStackPrice;
+			lore.addAll(getCustomItemDescription(item, amount));
+		});
+
+		ItemStack sell = shopInventory.getItem(shopInventory.getSize() - 5);
+
+		if (sell == null)
+			return;
+		if (sell.getItemMeta() == null)
+			return;
+
+		ItemMeta im = sell.getItemMeta();
+		im.setDisplayName(cfg.getString("gui-sellitem.displayname").replace('&', '§')
+				.replace("%total%", economy.format(totalPrice[0])));
+		im.setLore(lore);
+		sell.setItemMeta(im);
+
+		shopInventory.setItem(shopInventory.getSize() - 5, sell);
+	}
+
 }
