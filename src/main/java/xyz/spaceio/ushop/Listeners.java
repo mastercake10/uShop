@@ -96,7 +96,7 @@ public class Listeners implements Listener {
 						allLines.addAll(desc);
 					}
 					TextComponent receipt = new TextComponent(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("receipt.message")));
-					receipt.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[] {new TextComponent(String.join("\n" + ChatColor.RESET, allLines))}));
+					receipt.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(String.join("\n" + ChatColor.RESET, allLines))));
 					p.spigot().sendMessage(receipt);
 					
 					// put unsalable items back to player's inventory
