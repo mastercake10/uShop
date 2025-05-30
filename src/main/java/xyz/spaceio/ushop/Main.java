@@ -403,7 +403,8 @@ public class Main extends JavaPlugin {
 			this.cfg.set("sell-prices-simple", entries);
 			this.saveConfig();
 			for(Material mat : Material.values()) {
-				customItems.add(new CustomItem(new ItemStack(mat), 0d));
+				if (mat.isItem())
+					customItems.add(new CustomItem(new ItemStack(mat), 0d));
 			}
 		}
 	}
