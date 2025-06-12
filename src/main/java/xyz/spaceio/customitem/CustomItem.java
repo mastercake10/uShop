@@ -21,6 +21,7 @@ public class CustomItem implements ConfigurationSerializable {
 	private String displayname;
 
 	private boolean hasMeta = false;
+	private boolean hasCustomModelData = false;
 
 	private short durability;
 	private List<String> lore;
@@ -35,6 +36,7 @@ public class CustomItem implements ConfigurationSerializable {
 		this.durability = is.getDurability();
 		if (is.hasItemMeta()) {
 			hasMeta = true;
+			this.hasCustomModelData = is.getItemMeta().hasCustomModelData();
 			if (is.getItemMeta().hasDisplayName()) {
 				this.displayname = is.getItemMeta().getDisplayName();
 			}
@@ -80,6 +82,10 @@ public class CustomItem implements ConfigurationSerializable {
 		}
 		
 		if(is.getDurability() != durability && !hasFlag(Flags.IGNORE_DURABILITY)) {
+			return false;
+		}
+
+		if (is.hasItemMeta() && is.getItemMeta().hasCustomModelData() != hasCustomModelData && !hasFlag(Flags.IGNORE_CUSTOM_MODEL_DATA)) {
 			return false;
 		}
 	

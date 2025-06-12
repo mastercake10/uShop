@@ -12,5 +12,7 @@ receipt:
   format: "%amount%x &c%material%&r = &a %price%"
 gui-item-enumeration-format: "%amount%x &c%material%&r = &a %price%"
 message-sold: "&aSold all items for &c%total%&a!"
+# sell limit in your currency per day, will reset on next day.
+sell-limit: -1
 command: "sell"
 # sell prices. I suggest to use /ushop setprice in game for adding items, or use /ushop convert in order to use your essentialsx prices!
