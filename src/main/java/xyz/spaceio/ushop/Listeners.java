@@ -17,6 +17,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.BlockStateMeta;
 
 import net.md_5.bungee.api.ChatColor;
@@ -59,7 +60,7 @@ public class Listeners implements Listener {
 	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onClick(final InventoryClickEvent e){
-		if(e.getInventory() == null) return;
+		if(e.getClickedInventory() instanceof PlayerInventory) return;
 
 		if(e.getWhoClicked() instanceof Player) {
 			if(!plugin.isShopGUI(e.getView())) {
